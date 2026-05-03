@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+
+<style>
+body {
+margin:0;
+background:black;
+color:white;
+font-family:sans-serif;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+}
+
+#player {
+width:300px;
+height:300px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+border:1px solid rgba(255,255,255,0.1);
+}
+
+#brand {
+font-size:12px;
+opacity:0.6;
+margin-bottom:8px;
+letter-spacing:1px;
+}
+
+#title {
+font-size:16px;
+margin:4px 0;
+}
+
+#meta {
+font-size:12px;
+opacity:0.6;
+margin-bottom:12px;
+}
+
+.controls {
+display:flex;
+gap:10px;
+}
+
+button {
+background:none;
+border:1px solid white;
+width:44px;
+height:44px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+}
+
+button svg {
+width:16px;
+height:16px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="player">
+<div id="brand">ATLAS RADIO CLUB</div>
+
+<div id="title">—</div>
+<div id="meta"></div>
+
+<div class="controls">
+
+<!-- PLAY -->
+<button onclick="play()">
+<svg viewBox="0 0 24 24" fill="white">
+<polygon points="5,3 19,12 5,21"/>
+</svg>
+</button>
+
+<!-- PAUSE -->
+<button onclick="pause()">
+<svg viewBox="0 0 24 24" fill="white">
+<rect x="6" y="4" width="4" height="16"/>
+<rect x="14" y="4" width="4" height="16"/>
+</svg>
+</button>
+
+<!-- NEXT -->
+<button onclick="skip()">
+<svg viewBox="0 0 24 24" fill="white">
+<polygon points="5,4 15,12 5,20"/>
+<rect x="17" y="4" width="2" height="16"/>
+</svg>
+</button>
+
+<!-- LINK -->
+<button onclick="openLink()">
+<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+<path d="M7 17L17 7"/>
+<path d="M7 7h10v10"/>
+</svg>
+</button>
+
+</div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+let tracks = [];
+let currentTrack = null;
+
+const audio = document.getElementById("audio");
+const titleEl = document.getElementById("title");
+const metaEl = document.getElementById("meta");
+
+// random track (no repeat)
+function getRandomTrack() {
+if (tracks.length === 0) return null;
+
+let next;
+do {
+next = tracks[Math.floor(Math.random() * tracks.length)];
+} while (tracks.length > 1 && next === currentTrack);
+
+return next;
+}
+
+function playTrack(track) {
+if (!track) return;
+
+currentTrack = track;
+audio.src = track.src;
+
+titleEl.innerText = track.title;
+
+// FIX: use meta safely
+if (track.meta && track.meta.trim() !== "") {
+metaEl.innerText = track.meta;
+} else {
+metaEl.innerText = "ATLAS RADIO CLUB";
+}
+
+audio.play().catch(() => {
+titleEl.innerText = "Click play";
+});
+}
+
+function play() {
+if (!audio.src) {
+playTrack(getRandomTrack());
+} else {
+audio.play();
+}
+}
+
+function pause() {
+audio.pause();
+}
+
+function skip() {
+playTrack(getRandomTrack());
+}
+
+function openLink() {
+if (currentTrack && currentTrack.link) {
+window.open(currentTrack.link, "_blank");
+}
+}
+
+// auto next
+audio.addEventListener("ended", () => {
+playTrack(getRandomTrack());
+});
+
+// fetch tracks
+fetch("tracks.json?v=" + Date.now())
+.then(res => res.json())
+.then(data => {
+tracks = data;
+})
+.catch(() => {
+titleEl.innerText = "Error loading";
+});
+</script>
+
+</body>
+</html>
