@@ -1,0 +1,21 @@
+    }
+    audio {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<audio id="audio" controls></audio>
+
+<script>
+fetch("tracks.json")
+  .then(res => res.json())
+  .then(data => {
+    const audio = document.getElementById("audio");
+    audio.src = data[0].src;
+  });
+</script>
+
+</body>
+</html>
